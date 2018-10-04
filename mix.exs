@@ -40,13 +40,14 @@ defmodule TasKafka.MixProject do
       {:mongodb, "== 0.4.6"},
       {:poolboy, "~> 1.5"},
       {:vex, "~> 0.8.0"},
+      {:ex_doc, ">= 0.0.0", only: :dev},
       {:credo, "~> 0.10.0", only: [:dev, :test], runtime: false}
     ]
   end
 
   defp package do
     [
-      name: "TasKafka",
+      name: "taskafka",
       contributors: ["Edenlab LLC"],
       maintainers: ["Edenlab LLC"],
       source_ref: "v#{@version}",
