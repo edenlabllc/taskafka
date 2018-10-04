@@ -9,16 +9,20 @@ defmodule TasKafka.Application do
     import Supervisor.Spec
 
     children = [
-      worker(Mongo, [
-        [name: :taskafka_mongo, url: mongo_url(), pool: DBConnection.Poolboy]
-      ])
+      worker(
+        Mongo,
+        [
+          [name: :taskafka_mongo, url: mongo_url(), pool: DBConnection.Poolboy]
+        ],
+        id: :taskafka_mongo
+      )
     ]
 
     opts = [strategy: :one_for_one, name: TasKafka.Supervisor]
     Supervisor.start_link(children, opts)
   end
 
-  def mongo_url() do
+  def mongo_url do
     if url = Application.get_env(:taskafka, :mongo, [])[:url] do
       url
     else

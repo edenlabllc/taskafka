@@ -2,9 +2,9 @@
   configs: [
     %{
       color: true,
-      name: "tasKafka",
+      name: "default",
       files: %{
-        included: ["lib/*"],
+        included: ["lib/*"]
       },
       checks: [
         {Credo.Check.Design.TagTODO, exit_status: 0},

@@ -5,6 +5,7 @@ defmodule TasKafka.MixProject do
 
   def project do
     [
+      app: :taskafka,
       version: @version,
       elixir: "~> 1.6",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -36,13 +37,16 @@ defmodule TasKafka.MixProject do
     [
       {:jason, "~> 1.1"},
       {:kafka_ex, "~> 0.8"},
-      {:mongodb, "~> 0.4"},
-      {:poolboy, "~> 1.5"}
+      {:mongodb, "== 0.4.6"},
+      {:poolboy, "~> 1.5"},
+      {:vex, "~> 0.8.0"},
+      {:credo, "~> 0.10.0", only: [:dev, :test], runtime: false}
     ]
   end
 
   defp package do
     [
+      name: "TasKafka",
       contributors: ["Edenlab LLC"],
       maintainers: ["Edenlab LLC"],
       source_ref: "v#{@version}",

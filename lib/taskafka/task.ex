@@ -1,4 +1,5 @@
 defmodule TasKafka.Task do
+  @moduledoc false
   alias TasKafka.Jobs
 
   defmacro __using__(topic: topic) do
