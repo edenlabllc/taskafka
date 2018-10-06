@@ -50,9 +50,21 @@ defmodule TasKafka.Mongo do
 
   defp prepare_doc(%DateTime{} = doc), do: doc
 
+  defp prepare_doc(%Date{} = doc) do
+    date = Date.to_erl(doc)
+    {date, {0, 0, 0}} |> NaiveDateTime.from_erl!() |> DateTime.from_naive!("Etc/UTC")
+  end
+
+  defp prepare_doc(%BSON.Binary{} = doc), do: doc
+  defp prepare_doc(%BSON.ObjectId{} = doc), do: doc
+
   defp prepare_doc(%{} = doc) do
     Enum.into(doc, %{}, fn {k, v} -> {k, prepare_doc(v)} end)
   end
 
   defp prepare_doc(doc), do: doc
+
+  def generate_id do
+    Mongo.IdServer.new()
+  end
 end
