@@ -1,4 +1,4 @@
-defmodule TasKafka.Schema do
+defmodule TasKafka.Mongo.Schema do
   @moduledoc false
 
   defmodule Metadata do
@@ -9,7 +9,7 @@ defmodule TasKafka.Schema do
 
   defmacro __using__(_) do
     quote do
-      import TasKafka.Schema
+      import TasKafka.Mongo.Schema
     end
   end
 
@@ -61,13 +61,6 @@ defmodule TasKafka.Schema do
         metadata
         | fields: Map.put(metadata.fields, name, %{"validations" => validations})
       })
-    end
-  end
-
-  defmacro timestamps do
-    quote do
-      field(:inserted_at, presence: true)
-      field(:updated_at, presence: true)
     end
   end
 end

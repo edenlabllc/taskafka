@@ -17,49 +17,48 @@ defmodule TasKafka.Jobs do
     _ in FunctionClauseError -> nil
   end
 
-  def update(id, status, response, status_code) when is_binary(id) do
-    set_data =
-      Job.encode_response(%{
-        "status" => status,
-        "status_code" => status_code,
-        "updated_at" => DateTime.utc_now(),
-        "response" => response
-      })
-
-    Mongo.update_one(@collection, %{"_id" => ObjectId.decode!(id)}, %{"$set" => set_data})
-  rescue
-    _ in FunctionClauseError -> nil
+  def new(data) do
+    %Job{
+      _id: Mongo.generate_id(),
+      status: Job.status(:pending),
+      started_at: DateTime.utc_now(),
+      ended_at: DateTime.from_unix!(0),
+      eta: count_eta()
+    }
+    |> Map.merge(data)
+    |> Job.encode_fields_with_variable_length()
   end
 
-  def create(module, data) do
-    hash = :md5 |> :crypto.hash(:erlang.term_to_binary(data)) |> Base.url_encode64(padding: false)
+  def create(meta) do
+    hash = :md5 |> :crypto.hash(:erlang.term_to_binary(meta)) |> Base.url_encode64(padding: false)
 
     case Mongo.find_one(@collection, %{"hash" => hash, "status" => Job.status(:pending)}, projection: [_id: true]) do
       %{"_id" => id} ->
         {:job_exists, to_string(id)}
 
       _ ->
-        job =
-          Job.encode_response(%Job{
-            _id: Mongo.generate_id(),
-            hash: hash,
-            status: Job.status(:pending),
-            status_code: 202,
-            inserted_at: DateTime.utc_now(),
-            updated_at: DateTime.utc_now(),
-            eta: count_eta(),
-            response: ""
-          })
-
-        data =
-          data
-          |> Enum.into(%{}, fn {k, v} -> {String.to_atom(k), v} end)
-          |> Map.put(:_id, to_string(job._id))
+        job = new(%{hash: hash, meta: meta, result: ""})
 
         with {:ok, _} <- Mongo.insert_one(job) do
-          {:ok, job, struct(module, data)}
+          {:ok, Job.decode_fields_with_variable_length(job)}
         end
     end
+  end
+
+  def processed(id, result), do: update(id, Job.status(:processed), result)
+  def failed(id, result), do: update(id, Job.status(:failed), result)
+
+  def update(id, status, result) do
+    set_data =
+      Job.encode_result(%{
+        "result" => result,
+        "status" => status,
+        "ended_at" => DateTime.utc_now()
+      })
+
+    Mongo.update_one(@collection, %{"_id" => ObjectId.decode!(id)}, %{"$set" => set_data})
+  rescue
+    _ in FunctionClauseError -> nil
   end
 
   # ToDo: count real eta based on kafka performance testing. Temporary hardcoded to 10 minutes.
@@ -75,16 +74,6 @@ defmodule TasKafka.Jobs do
   defp map_to_job(data) do
     Job
     |> struct(Enum.map(data, fn {k, v} -> {String.to_atom(k), v} end))
-    |> Job.decode_response()
+    |> Job.decode_fields_with_variable_length()
   end
-
-  def fetch_links(%Job{status_code: 200, response: response}), do: Map.get(response, "links", [])
-
-  def fetch_links(%Job{_id: id}),
-    do: [
-      %{
-        entity: "job",
-        href: "/jobs/#{id}"
-      }
-    ]
 end

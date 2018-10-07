@@ -8,8 +8,15 @@ defmodule TasKafka.Task do
 
       @idle Application.get_env(:taskafka, :idle, false)
 
-      def produce(data, partition \\ 0) do
+      def produce_without_job(data, partition \\ 0) do
         produce_to_kafka(@idle, unquote(topic), partition, data)
+      end
+
+      def produce(kafka_data, job_meta_data, partition \\ 0) do
+        with {:ok, job} <- Jobs.create(job_meta_data),
+             :ok <- produce_to_kafka(@idle, unquote(topic), partition, kafka_data) do
+          {:ok, job}
+        end
       end
 
       def produce_with_task(task_module, task_data, partition \\ 0) do

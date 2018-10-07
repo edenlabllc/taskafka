@@ -1,7 +1,7 @@
 defmodule TasKafka.MixProject do
   use Mix.Project
 
-  @version "0.0.2"
+  @version "0.0.3"
 
   def project do
     [
@@ -13,6 +13,7 @@ defmodule TasKafka.MixProject do
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      aliases: aliases(),
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [coveralls: :test],
       description:
@@ -35,6 +36,7 @@ defmodule TasKafka.MixProject do
 
   defp deps do
     [
+      {:elixir_uuid, "~> 1.2"},
       {:jason, "~> 1.1"},
       {:kafka_ex, "~> 0.8"},
       {:mongodb, "== 0.4.6"},
@@ -42,6 +44,13 @@ defmodule TasKafka.MixProject do
       {:vex, "~> 0.8.0"},
       {:ex_doc, ">= 0.0.0", only: :dev},
       {:credo, "~> 0.10.0", only: [:dev, :test], runtime: false}
+    ]
+  end
+
+  defp aliases do
+    [
+      reset: ["drop", "migrate"],
+      test: ["reset", "test"]
     ]
   end
 

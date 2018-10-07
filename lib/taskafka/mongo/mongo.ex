@@ -21,6 +21,18 @@ defmodule TasKafka.Mongo do
     apply(M, fun, enriched_args)
   end
 
+  def command(query, opts \\ []) do
+    execute(:command, [query, opts])
+  end
+
+  def command!(query, opts \\ []) do
+    execute(:command!, [query, opts])
+  end
+
+  def find(coll, filter, opts \\ []) do
+    execute(:find, [coll, filter, opts])
+  end
+
   def find_one(coll, filter, opts \\ []) do
     execute(:find_one, [coll, filter, opts])
   end
