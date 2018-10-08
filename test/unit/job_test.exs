@@ -5,7 +5,6 @@ defmodule TasKafka.JobsTest do
   alias BSON.ObjectId
   alias TasKafka.Job
   alias TasKafka.Jobs
-  alias TestModule.Meta
   alias TestModule.Failed
 
   describe "create job" do
@@ -47,12 +46,11 @@ defmodule TasKafka.JobsTest do
     end
 
     test "job failed" do
-      meta =
-        struct(Meta, %{
-          id: UUID.uuid4(),
-          params: %{"option" => 1},
-          settings: [%{enabled: true}]
-        })
+      meta = %{
+          "id" => UUID.uuid4(),
+          "params" => %{"option" => 1},
+          "settings" => [%{"enabled" => true}]
+        }
 
       assert {:ok, job} = Jobs.create(meta)
       job_id = ObjectId.encode!(job._id)
@@ -62,9 +60,7 @@ defmodule TasKafka.JobsTest do
 
       assert {:ok, %Job{} = updated_job} = Jobs.get_by_id(job_id)
       assert Job.status(:failed) == updated_job.status
-      assert meta.id == updated_job.meta["id"]
-      assert meta.params == updated_job.meta["params"]
-      assert [%{"enabled" => true}] == updated_job.meta["settings"]
+      assert meta == updated_job.meta
       assert %{"response" => "Operation failed", "status_code" => 200} == updated_job.result
     end
   end
