@@ -30,7 +30,6 @@ defmodule TasKafka.Job do
     field(:eta, presence: true)
     field(:status, presence: true, inclusion: [@status_pending, @status_processed, @status_failed])
     field(:meta, length: [is: @variable_field_length])
-    field(:meta_size, presence: true)
     field(:result, length: [is: @variable_field_length])
     field(:result_size, presence: true)
     field(:started_at, presence: true)
@@ -41,13 +40,7 @@ defmodule TasKafka.Job do
     meta = Jason.encode!(job.meta)
     result = Jason.encode!(job.result)
 
-    %{
-      job
-      | result: pad_field_value(result),
-        result_size: byte_size(result),
-        meta: pad_field_value(meta),
-        meta_size: byte_size(meta)
-    }
+    %{job | result: pad_field_value(result), result_size: byte_size(result)}
   end
 
   def encode_result(%{"result" => value} = data) do
@@ -60,11 +53,7 @@ defmodule TasKafka.Job do
   end
 
   def decode_fields_with_variable_length(%__MODULE__{} = job) do
-    %{
-      job
-      | meta: Jason.decode!(binary_part(job.meta, 0, job.meta_size)),
-        result: Jason.decode!(binary_part(job.result, 0, job.result_size))
-    }
+    %{job | result: Jason.decode!(binary_part(job.result, 0, job.result_size))}
   end
 
   defp pad_field_value(value), do: String.pad_trailing(value, @variable_field_length, ".")

@@ -11,6 +11,7 @@ defmodule TasKafka.JobsTest do
   describe "create job" do
     test "success create and process job" do
       now = DateTime.utc_now()
+      merger_to_id = UUID.uuid4()
 
       meta = %{
         "merged_from_legal_entity" => %{
@@ -19,7 +20,7 @@ defmodule TasKafka.JobsTest do
           "edrpou" => "1234567890"
         },
         "merged_to_legal_entity" => %{
-          "id" => UUID.uuid4(),
+          "id" => merger_to_id,
           "name" => "merged to legal entity",
           "edrpou" => "0987654321"
         }
@@ -36,6 +37,13 @@ defmodule TasKafka.JobsTest do
       assert meta == updated_job.meta
       assert result == updated_job.result
       assert :gt == DateTime.compare(updated_job.ended_at, now)
+
+      jobs =
+        Job.metadata().collection
+        |> Mongo.find(%{"meta.merged_to_legal_entity.id" => merger_to_id})
+        |> Enum.to_list()
+
+      assert job._id == hd(jobs)["_id"]
     end
 
     test "job failed" do
