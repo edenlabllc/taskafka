@@ -34,7 +34,7 @@ defmodule TasKafka.Jobs do
 
     case Mongo.find_one(@collection, %{"hash" => hash, "status" => Job.status(:pending)}, projection: [_id: true]) do
       %{"_id" => id} ->
-        {:job_exists, to_string(id)}
+        {:job_exists, ObjectId.encode!(id)}
 
       _ ->
         job = new(%{hash: hash, meta: meta, result: ""})

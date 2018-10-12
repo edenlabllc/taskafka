@@ -2,9 +2,15 @@ defmodule TasKafka.Task do
   @moduledoc false
   alias TasKafka.Jobs
 
+  @callback consume(:term) :: :ok | {:error, :term}
+
   defmacro __using__(topic: topic) do
     quote do
+      @behaviour TasKafka.Task
+
       use KafkaEx.GenConsumer
+      alias KafkaEx.Protocol.Fetch.Message
+      require Logger
 
       @idle Application.get_env(:taskafka, :idle, false)
 
@@ -14,16 +20,20 @@ defmodule TasKafka.Task do
 
       def produce(kafka_data, job_meta_data, partition \\ 0) do
         with {:ok, job} <- Jobs.create(job_meta_data),
-             :ok <- produce_to_kafka(@idle, unquote(topic), partition, kafka_data) do
+             :ok <- produce_to_kafka(@idle, unquote(topic), partition, Map.put(kafka_data, :job_id, job.id)) do
           {:ok, job}
         end
       end
 
-      def produce_with_task(task_module, task_data, partition \\ 0) do
-        with {:ok, job, task} <- Jobs.create(task_module, task_data),
-             :ok <- produce_to_kafka(@idle, unquote(topic), partition, task) do
-          {:ok, job}
+      def handle_message_set(message_set, state) do
+        for %Message{value: message, offset: offset} <- message_set do
+          value = :erlang.binary_to_term(message)
+          Logger.debug(fn -> "message: " <> inspect(value) end)
+          Logger.info(fn -> "offset: #{offset}" end)
+          :ok = consume(value)
         end
+
+        {:async_commit, state}
       end
 
       # do not produce message to Kafka for test cases
