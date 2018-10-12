@@ -9,6 +9,7 @@ defmodule TasKafka.Task do
       @behaviour TasKafka.Task
 
       use KafkaEx.GenConsumer
+      alias BSON.ObjectId
       alias KafkaEx.Protocol.Fetch.Message
       require Logger
 
@@ -20,7 +21,8 @@ defmodule TasKafka.Task do
 
       def produce(kafka_data, job_meta_data, partition \\ 0) do
         with {:ok, job} <- Jobs.create(job_meta_data),
-             :ok <- produce_to_kafka(@idle, unquote(topic), partition, Map.put(kafka_data, :job_id, job.id)) do
+             job_id <- ObjectId.encode!(job._id),
+             :ok <- produce_to_kafka(@idle, unquote(topic), partition, Map.put(kafka_data, :job_id, job_id)) do
           {:ok, job}
         end
       end
