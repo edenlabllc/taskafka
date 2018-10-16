@@ -14,15 +14,19 @@ defmodule TasKafka.Task do
       require Logger
 
       @idle Application.get_env(:taskafka, :idle, false)
+      @defaults %{partition: 0, type: 100}
 
-      def produce_without_job(data, partition \\ 0) do
-        produce_to_kafka(@idle, unquote(topic), partition, data)
+      def produce_without_job(data, opts \\ []) do
+        opts = Enum.into(opts, @defaults)
+        produce_to_kafka(@idle, unquote(topic), opts.partition, data)
       end
 
-      def produce(kafka_data, job_meta_data, partition \\ 0) do
-        with {:ok, job} <- Jobs.create(job_meta_data),
+      def produce(kafka_data, job_meta_data, opts \\ []) do
+        opts = Enum.into(opts, @defaults)
+
+        with {:ok, job} <- Jobs.create(job_meta_data, opts.type),
              job_id <- ObjectId.encode!(job._id),
-             :ok <- produce_to_kafka(@idle, unquote(topic), partition, Map.put(kafka_data, :job_id, job_id)) do
+             :ok <- produce_to_kafka(@idle, unquote(topic), opts.partition, Map.put(kafka_data, :job_id, job_id)) do
           {:ok, job}
         end
       end

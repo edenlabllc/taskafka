@@ -71,7 +71,7 @@ defmodule TasKafka.JobsTest do
         assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()})
       end
 
-      list = Jobs.get_list()
+      list = Jobs.get_list(%{"type" => 100})
       assert 10 == length(list)
 
       Enum.each(list, fn job ->
@@ -80,11 +80,11 @@ defmodule TasKafka.JobsTest do
     end
 
     test "filter by type" do
-      assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()}, 100)
+      assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()}, 120)
       assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()}, 200)
       assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()}, 300)
 
-      assert [%Job{type: 100}] = Jobs.get_list(%{"type" => 100})
+      assert [%Job{type: 120}] = Jobs.get_list(%{"type" => 120})
       assert [%Job{type: 300}] = Jobs.get_list(%{"type" => 300})
       assert [] = Jobs.get_list(%{"type" => 150})
     end
