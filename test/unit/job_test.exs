@@ -68,10 +68,10 @@ defmodule TasKafka.JobsTest do
   describe "get jobs list" do
     test "success" do
       for _ <- 1..10 do
-        assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()})
+        assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()}, 110)
       end
 
-      list = Jobs.get_list(%{"type" => 100})
+      list = Jobs.get_list(%{"type" => 110})
       assert 10 == length(list)
 
       Enum.each(list, fn job ->
@@ -90,17 +90,17 @@ defmodule TasKafka.JobsTest do
     end
 
     test "sort by type" do
-      assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()}, 500)
-      assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()}, 200)
-      assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()}, 300)
+      assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()}, 101)
+      assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()}, 102)
+      assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()}, 103)
 
-      list = Jobs.get_list(%{}, [sort: %{"type" => 1}])
+      list = Jobs.get_list(%{type: %{"$in": [101, 102, 103]}}, sort: %{"type" => 1})
       assert 3 = length(list)
-      assert [%{type: 200},%{type: 300},%{type: 500}] = list
+      assert [%{type: 101}, %{type: 102}, %{type: 103}] = list
 
-      list = Jobs.get_list(%{}, [sort: %{"type" => -1}])
+      list = Jobs.get_list(%{}, sort: %{"type" => -1})
       assert 3 = length(list)
-      assert [%{type: 500},%{type: 300},%{type: 200}] = list
+      assert [%{type: 103}, %{type: 102}, %{type: 101}] = list
     end
   end
 end
