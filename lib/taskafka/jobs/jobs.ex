@@ -17,9 +17,9 @@ defmodule TasKafka.Jobs do
     _ in FunctionClauseError -> nil
   end
 
-  def get_list(filter \\ %{}) do
+  def get_list(filter \\ %{}, opts \\ []) do
     @collection
-    |> Mongo.find(filter)
+    |> Mongo.find(filter, opts)
     |> Enum.into([], &map_to_job/1)
   end
 

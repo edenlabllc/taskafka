@@ -88,5 +88,19 @@ defmodule TasKafka.JobsTest do
       assert [%Job{type: 300}] = Jobs.get_list(%{"type" => 300})
       assert [] = Jobs.get_list(%{"type" => 150})
     end
+
+    test "sort by type" do
+      assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()}, 500)
+      assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()}, 200)
+      assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()}, 300)
+
+      list = Jobs.get_list(%{}, [sort: %{"type" => 1}])
+      assert 3 = length(list)
+      assert [%{type: 200},%{type: 300},%{type: 500}] = list
+
+      list = Jobs.get_list(%{}, [sort: %{"type" => -1}])
+      assert 3 = length(list)
+      assert [%{type: 500},%{type: 300},%{type: 200}] = list
+    end
   end
 end
