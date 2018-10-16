@@ -47,10 +47,10 @@ defmodule TasKafka.JobsTest do
 
     test "job failed" do
       meta = %{
-          "id" => UUID.uuid4(),
-          "params" => %{"option" => 1},
-          "settings" => [%{"enabled" => true}]
-        }
+        "id" => UUID.uuid4(),
+        "params" => %{"option" => 1},
+        "settings" => [%{"enabled" => true}]
+      }
 
       assert {:ok, job} = Jobs.create(meta)
       job_id = ObjectId.encode!(job._id)
@@ -62,6 +62,31 @@ defmodule TasKafka.JobsTest do
       assert Job.status(:failed) == updated_job.status
       assert meta == updated_job.meta
       assert %{"response" => "Operation failed", "status_code" => 200} == updated_job.result
+    end
+  end
+
+  describe "get jobs list" do
+    test "success" do
+      for _ <- 1..10 do
+        assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()})
+      end
+
+      list = Jobs.get_list()
+      assert 10 == length(list)
+
+      Enum.each(list, fn job ->
+        assert %Job{} = job
+      end)
+    end
+
+    test "filter by type" do
+      assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()}, 100)
+      assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()}, 200)
+      assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()}, 300)
+
+      assert [%Job{type: 100}] = Jobs.get_list(%{"type" => 100})
+      assert [%Job{type: 300}] = Jobs.get_list(%{"type" => 300})
+      assert [] = Jobs.get_list(%{"type" => 150})
     end
   end
 end

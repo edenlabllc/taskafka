@@ -29,6 +29,7 @@ defmodule TasKafka.Job do
     field(:hash, presence: true)
     field(:eta, presence: true)
     field(:status, presence: true, inclusion: [@status_pending, @status_processed, @status_failed])
+    field(:type, presence: true, number: [greater_than_or_equal_to: 100, less_than_or_equal_to: 999])
     field(:meta, length: [is: @variable_field_length])
     field(:result, length: [is: @variable_field_length])
     field(:result_size, presence: true)
@@ -37,7 +38,6 @@ defmodule TasKafka.Job do
   end
 
   def encode_fields_with_variable_length(%__MODULE__{} = job) do
-    meta = Jason.encode!(job.meta)
     result = Jason.encode!(job.result)
 
     %{job | result: pad_field_value(result), result_size: byte_size(result)}

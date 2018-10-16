@@ -17,6 +17,12 @@ defmodule TasKafka.Jobs do
     _ in FunctionClauseError -> nil
   end
 
+  def get_list(filter \\ %{}) do
+    @collection
+    |> Mongo.find(filter)
+    |> Enum.into([], &map_to_job/1)
+  end
+
   def new(data) do
     %Job{
       _id: Mongo.generate_id(),
@@ -29,7 +35,7 @@ defmodule TasKafka.Jobs do
     |> Job.encode_fields_with_variable_length()
   end
 
-  def create(meta) do
+  def create(meta, type \\ 100) do
     hash = :md5 |> :crypto.hash(:erlang.term_to_binary(meta)) |> Base.url_encode64(padding: false)
 
     case Mongo.find_one(@collection, %{"hash" => hash, "status" => Job.status(:pending)}, projection: [_id: true]) do
@@ -37,7 +43,7 @@ defmodule TasKafka.Jobs do
         {:job_exists, ObjectId.encode!(id)}
 
       _ ->
-        job = new(%{hash: hash, meta: meta, result: ""})
+        job = new(%{hash: hash, meta: meta, result: "", type: type})
 
         with {:ok, _} <- Mongo.insert_one(job) do
           {:ok, Job.decode_fields_with_variable_length(job)}

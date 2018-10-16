@@ -1,7 +1,7 @@
 defmodule TasKafka.MixProject do
   use Mix.Project
 
-  @version "0.0.6"
+  @version "0.0.7"
 
   def project do
     [
