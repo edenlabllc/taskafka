@@ -81,5 +81,9 @@ defmodule TasKafka.Jobs do
     Job
     |> struct(Enum.map(data, fn {k, v} -> {String.to_atom(k), v} end))
     |> Job.decode_fields_with_variable_length()
+    |> ended_at()
   end
+
+  defp ended_at(%{ended_at: %DateTime{year: 1970}} = job), do: %{job | ended_at: nil}
+  defp ended_at(job), do: job
 end

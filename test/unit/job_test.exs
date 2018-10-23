@@ -84,7 +84,7 @@ defmodule TasKafka.JobsTest do
       assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()}, 200)
       assert {:ok, _} = Jobs.create(%{"id" => UUID.uuid4()}, 300)
 
-      assert [%Job{type: 120}] = Jobs.get_list(%{"type" => 120})
+      assert [%Job{type: 120, ended_at: nil}] = Jobs.get_list(%{"type" => 120})
       assert [%Job{type: 300}] = Jobs.get_list(%{"type" => 300})
       assert [] = Jobs.get_list(%{"type" => 150})
     end
@@ -98,7 +98,7 @@ defmodule TasKafka.JobsTest do
       assert 3 = length(list)
       assert [%{type: 101}, %{type: 102}, %{type: 103}] = list
 
-      list = Jobs.get_list(%{}, sort: %{"type" => -1})
+      list = Jobs.get_list(%{type: %{"$in": [101, 102, 103]}}, sort: %{"type" => -1})
       assert 3 = length(list)
       assert [%{type: 103}, %{type: 102}, %{type: 101}] = list
     end
