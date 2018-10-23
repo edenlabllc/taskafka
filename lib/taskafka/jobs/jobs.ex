@@ -46,7 +46,7 @@ defmodule TasKafka.Jobs do
         job = new(%{hash: hash, meta: meta, result: "", type: type})
 
         with {:ok, _} <- Mongo.insert_one(job) do
-          {:ok, Job.decode_fields_with_variable_length(job)}
+          {:ok, job |> Job.decode_fields_with_variable_length() |> ended_at()}
         end
     end
   end
