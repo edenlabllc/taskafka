@@ -8,9 +8,8 @@ defmodule TasKafka.Task do
     quote do
       @behaviour TasKafka.Task
 
-      use KafkaEx.GenConsumer
       alias BSON.ObjectId
-      alias KafkaEx.Protocol.Fetch.Message
+      alias Kaffe.Producer
       require Logger
 
       @idle Application.get_env(:taskafka, :idle, false)
@@ -31,22 +30,22 @@ defmodule TasKafka.Task do
         end
       end
 
-      def handle_message_set(message_set, state) do
-        for %Message{value: message, offset: offset} <- message_set do
+      def handle_messages(message_set) do
+        for %{offset: offset, value: message} <- message_set do
           value = :erlang.binary_to_term(message)
           Logger.debug(fn -> "message: " <> inspect(value) end)
           Logger.info(fn -> "offset: #{offset}" end)
           :ok = consume(value)
         end
 
-        {:async_commit, state}
+        :ok
       end
 
       # do not produce message to Kafka for test cases
       defp produce_to_kafka(true, _topic, _partition, _task), do: :ok
 
       defp produce_to_kafka(false, topic, partition, task),
-        do: KafkaEx.produce(topic, partition, :erlang.term_to_binary(task))
+        do: Producer.produce_sync(topic, partition, nil, :erlang.term_to_binary(event))
     end
   end
 end

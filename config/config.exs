@@ -3,4 +3,8 @@ use Mix.Config
 config :taskafka, :mongo, url: "mongodb://localhost:27017/taskafka_test"
 config :taskafka, :idle, false
 
-config :kafka_ex, brokers: "localhost:9092"
+config :kaffe,
+  kafka_mod: :brod,
+  producer: [
+    endpoints: [localhost: 9092]
+  ]
