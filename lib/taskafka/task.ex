@@ -45,7 +45,7 @@ defmodule TasKafka.Task do
       defp produce_to_kafka(true, _topic, _partition, _task), do: :ok
 
       defp produce_to_kafka(false, topic, partition, task),
-        do: Producer.produce_sync(topic, partition, nil, :erlang.term_to_binary(event))
+        do: Producer.produce_sync(topic, partition, nil, :erlang.term_to_binary(task))
     end
   end
 end
