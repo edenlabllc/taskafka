@@ -7,7 +7,7 @@ defmodule Mix.Tasks.Drop do
 
   def run(_) do
     {:ok, _} = Application.ensure_all_started(:mongodb)
-    pid = start_mongo
+    pid = start_mongo()
 
     Mongo.command!(dropDatabase: 1)
     Logger.info(IO.ANSI.green() <> "Database dropped" <> IO.ANSI.default_color())

@@ -31,15 +31,16 @@ defmodule TasKafka.Task do
         end
       end
 
-      def handle_message_set(message_set, state) do
-        for %Message{value: message, offset: offset} <- message_set do
+      def handle_messages(messages) do
+        for %{offset: offset, value: message} <- messages do
           value = :erlang.binary_to_term(message)
           Logger.debug(fn -> "message: " <> inspect(value) end)
           Logger.info(fn -> "offset: #{offset}" end)
           :ok = consume(value)
         end
 
-        {:async_commit, state}
+        # Important!
+        :ok
       end
 
       # do not produce message to Kafka for test cases

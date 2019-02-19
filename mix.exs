@@ -38,7 +38,7 @@ defmodule TasKafka.MixProject do
     [
       {:elixir_uuid, "~> 1.2"},
       {:jason, "~> 1.1"},
-      {:kafka_ex, "~> 0.9.0"},
+      {:kaffe, git: "https://github.com/AlexKovalevych/kaffe.git", branch: "string_endpoints_sasl"},
       {:mongodb, "== 0.4.6"},
       {:poolboy, "~> 1.5"},
       {:vex, "~> 0.8.0"},
