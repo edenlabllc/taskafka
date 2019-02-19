@@ -8,9 +8,7 @@ defmodule TasKafka.Task do
     quote do
       @behaviour TasKafka.Task
 
-      use KafkaEx.GenConsumer
       alias BSON.ObjectId
-      alias KafkaEx.Protocol.Fetch.Message
       require Logger
 
       @idle Application.get_env(:taskafka, :idle, false)
@@ -47,7 +45,7 @@ defmodule TasKafka.Task do
       defp produce_to_kafka(true, _topic, _partition, _task), do: :ok
 
       defp produce_to_kafka(false, topic, partition, task),
-        do: KafkaEx.produce(topic, partition, :erlang.term_to_binary(task))
+        do: Producer.produce_sync(topic, partition, nil, :erlang.term_to_binary(task))
     end
   end
 end
